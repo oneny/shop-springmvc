@@ -2,15 +2,22 @@ package oneny.springmvc.web.item.basic;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import oneny.springmvc.domain.Item;
 import oneny.springmvc.domain.ItemRepository;
+import oneny.springmvc.domain.item.DeliveryCode;
+import oneny.springmvc.domain.item.ItemType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Controller
 @RequestMapping("/basic/items")
 @RequiredArgsConstructor
@@ -46,7 +53,8 @@ public class BasicItemController {
   }
 
   @GetMapping("/add")
-  public String addForm() {
+  public String addForm(Model model) {
+    model.addAttribute("item", new Item());
     return "basic/addForm";
   }
 
@@ -55,11 +63,36 @@ public class BasicItemController {
    */
   @PostMapping("/add")
   public String addItemV6(Item item, RedirectAttributes redirectAttributes) {
+    log.info("item.open={}", item.getOpen());
     Item savedItem = itemRepository.save(item);
     redirectAttributes.addAttribute("itemId", savedItem.getId());
     redirectAttributes.addAttribute("status", true);
 
     return "redirect:/basic/items/{itemId}";
+  }
+
+  @ModelAttribute("regions")
+  public Map<String, String> regions() {
+    Map<String, String> regions = new LinkedHashMap<>();
+    regions.put("SEOUL", "서울");
+    regions.put("BUSAN", "부산");
+    regions.put("JEJU", "제주");
+    return regions;
+  }
+
+  @ModelAttribute("itemTypes")
+  public ItemType[] itemTypes() {
+    return ItemType.values();
+  }
+
+  @ModelAttribute("deliveryCodes")
+  public List<DeliveryCode> deliveryCodes() {
+    List<DeliveryCode> deliveryCodes = new ArrayList<>();
+    deliveryCodes.add(new DeliveryCode("FAST", "빠른 배송"));
+    deliveryCodes.add(new DeliveryCode("NORMAL", "일반 배송"));
+    deliveryCodes.add(new DeliveryCode("SLOW", "느린 배송"));
+
+    return deliveryCodes;
   }
 
   /**
@@ -107,7 +140,7 @@ public class BasicItemController {
     return "basic/item";
   }
 
-//  @PostMapping("/add")
+  //  @PostMapping("/add")
   public String addItemV1(@RequestParam String itemName,
                           @RequestParam int price,
                           @RequestParam Integer quantity,
